@@ -3,10 +3,10 @@ package main
 import (
     "github.com/bwmarrin/discordgo"
     "fmt"
-    //"os"
-    //"os/signal"
-    //"syscall"
     "net/http"
+    "os"
+    "os/signal"
+    "syscall"
 )
 
 func startDiscordBot() {
@@ -16,29 +16,30 @@ func startDiscordBot() {
         fmt.Println("error creating Discord session,", err)
         return
     }
-    DiscordSession = dg
     // Register the messageCreate func as a callback for MessageCreate events.
     dg.AddHandler(messageCreate)
-
     // Open a websocket connection to Discord and begin listening.
     err = dg.Open()
     if err != nil {
         fmt.Println("error opening connection,", err)
         return
     }
-
-    // Wait here until CTRL-C or other term signal is received.
-    /*fmt.Println("Bot is now running.  Press CTRL-C to exit.")
-    sc := make(chan os.Signal, 1)
-    signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-    <-sc
-
-    // Cleanly close down the Discord session.
-    dg.Close()*/
+    // Copy to global variables
+    DiscordSession = dg
 }
 
 func startHttpServer() {
     http.HandleFunc("/send", sendMessageHttpHandler)
     http.HandleFunc("/", defaultHttpHandler)
     http.ListenAndServe(Config.BotServerPort, nil)
+}
+
+func ctrlCStopService() {
+    // Wait here until CTRL-C or other term signal is received.
+    fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+    sc := make(chan os.Signal, 1)
+    signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+    <-sc
+    // Cleanly close down the Discord session.
+    DiscordSession.Close()
 }

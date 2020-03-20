@@ -23,7 +23,17 @@ func sendMessageHttpHandler(w http.ResponseWriter, req *http.Request) {
         http.Error(w, err.Error(), 500)
         return
     }
-    sendMessageToDiscord(chanelid, string(b))
+    if len(b) == 0 {
+        http.Error(w, "content is empty", 500)
+        return
+    }
+    m, err := sendMessageToDiscord(chanelid, string(b))
+    if err != nil {
+        http.Error(w, "fail", 500)
+        return
+    }
+    addMessageReaction(m, "✔️")//❌
+    addMessageReaction(m, "🇭🇰")
     fmt.Fprintf(w, "ok")
 }
 

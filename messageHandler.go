@@ -8,7 +8,6 @@ import (
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-
     // Ignore all messages created by the bot itself
     // This isn't required in this specific example but it's a good practice.
     if m.Author.ID == s.State.User.ID {
@@ -39,6 +38,16 @@ func sendMessageURLGen(chanelid string) string {
     return fmt.Sprintf("%s/send?chanelid=%s&sign=%s", Config.BotAPIUrl, chanelid, sign)
 }
 
-func sendMessageToDiscord(chanelid string, content string) {
-    DiscordSession.ChannelMessageSend(chanelid, content)
+func sendMessageToDiscord(chanelid string, content string) (*discordgo.Message, error) {
+    m,err := DiscordSession.ChannelMessageSend(chanelid, content)
+    if err != nil {
+        fmt.Println("send message was wrong!")
+        return nil, err
+    }
+    return m, nil
+}
+
+func addMessageReaction(m *discordgo.Message, emojiID string) error {
+    err := DiscordSession.MessageReactionAdd(m.ChannelID, m.ID, emojiID)
+    return err
 }

@@ -4,7 +4,8 @@ import (
     "flag"
     "github.com/jinzhu/configor"
     "github.com/bwmarrin/discordgo"
-    //"net/http"
+    "fmt"
+    "os"
 )
 
 var (
@@ -20,13 +21,18 @@ var Config struct {
 }
 
 func init() {
-
     flag.StringVar(&ConfigPATH, "c", "config.yml", "config file path")
     flag.Parse()
+    if !IsFile(ConfigPATH) || !Exists(ConfigPATH) {
+        fmt.Printf("Failed to find configuration %s\n", ConfigPATH)
+        os.Exit(3)
+        return
+    }
     configor.Load(&Config, ConfigPATH)
 }
 
 func main() {
     startDiscordBot()
     startHttpServer()
+    ctrlCStopService()
 }

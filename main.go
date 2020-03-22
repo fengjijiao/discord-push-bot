@@ -11,6 +11,7 @@ import (
 var (
     ConfigPATH string
     DiscordSession *discordgo.Session
+    Closed chan struct{}
 )
 
 // Variables used for command line parameters
@@ -32,7 +33,11 @@ func init() {
 }
 
 func main() {
-    startDiscordBot()
-    startHttpServer()
-    ctrlCStopService()
+    Closed = make(chan struct{})
+    go startDiscordBot()// start a thread
+    go startHttpServer()// start another thread
+    // to protected main thread
+    for range Closed {
+        close(Closed)
+    }
 }

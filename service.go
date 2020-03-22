@@ -7,6 +7,7 @@ import (
     "os"
     "os/signal"
     "syscall"
+    "runtime"
 )
 
 func startDiscordBot() {
@@ -26,12 +27,17 @@ func startDiscordBot() {
     }
     // Copy to global variables
     DiscordSession = dg
+    ctrlCStopService()
+    // Let the currently executing goroutine give up CPU execution permissions. Scheduler schedules other waiting threads to run
+    runtime.Gosched()
 }
 
 func startHttpServer() {
     http.HandleFunc("/send", sendMessageHttpHandler)
     http.HandleFunc("/", defaultHttpHandler)
     http.ListenAndServe(Config.BotServerPort, nil)
+    // Let the currently executing goroutine give up CPU execution permissions. Scheduler schedules other waiting threads to run
+    runtime.Gosched()
 }
 
 func ctrlCStopService() {
@@ -42,4 +48,6 @@ func ctrlCStopService() {
     <-sc
     // Cleanly close down the Discord session.
     DiscordSession.Close()
+    // Coroutine ends and signals
+    Closed <- struct{}{}
 }
